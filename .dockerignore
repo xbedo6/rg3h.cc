@@ -1,0 +1,7 @@
+.git
+.env
+data
+*.sqlite*
+*-check.cjs
+check.cjs
+node_modules
