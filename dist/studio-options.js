@@ -10,6 +10,7 @@ cardHTML=function(c,m=null,full=false){
  card.classList.toggle('stamp-emphasis-off',c.stampEmphasis===false);
  card.classList.add(c.pattern===true?'background-glow':'background-plain');card.classList.remove('studio-shine');
  card.dir=en?'ltr':'rtl';card.lang=en?'en':'ar';card.classList.add(en?'card-english':'card-arabic',`balance-${c.balanceStyle||'plain'}`);card.classList.toggle('balance-hidden',c.hideBalance===true);
+ const categoryLabel=card.querySelector('.studio-identity small');if(categoryLabel)categoryLabel.hidden=!String(c.category||'').trim();
  const brandName=card.querySelector('.studio-identity strong');if(brandName)brandName.hidden=!String(c.name||'').trim();
  const heading=card.querySelector('.studio-heading');heading.style.transform=`translate(${c.headlineX||0}px,${c.headlineY||0}px)`;
  const title=heading.querySelector('h3'),eyebrow=heading.querySelector('span'),program=heading.querySelector('p');title.textContent=c.headline||'';title.hidden=c.showHeadline!==true||!c.headline;eyebrow.textContent=c.eyebrow||'';eyebrow.hidden=!c.eyebrow;program.textContent=en?{visits:'Visits card',discount:'Discount card',points:'Points card'}[p.type]:{visits:'بطاقة الزيارات',discount:'بطاقة الخصومات',points:'بطاقة النقاط'}[p.type];program.hidden=c.showProgramLabel===false;heading.hidden=title.hidden&&eyebrow.hidden&&program.hidden;
@@ -51,7 +52,7 @@ function organizeCardEditor(box){
  for(const el of Array.from(old[0].children))if(!el.classList.contains('section-title'))rules.append(el);
  const identity=group('بيانات البطاقة والنصوص','اسم نشاطك، لغة البطاقة والعبارة الاختيارية.');
  move('[data-card="name"]',identity);const nameField=identity.querySelector('[data-card="name"]').closest('.field');nameField.querySelector('span').textContent='اسم النشاط على البطاقة · اختياري';nameField.insertAdjacentHTML('beforeend','<small>اتركه فارغًا إذا أردت عرض الشعار فقط.</small>');move('[data-card="category"]',identity);
- const categorySelect=identity.querySelector('[data-card="category"]'),known=['كافيه','مغسلة سيارات','متجر','صالون','حلاق','مطعم','نشاط آخر'];
+ const categorySelect=identity.querySelector('[data-card="category"]'),known=['','كافيه','مغسلة سيارات','متجر','صالون','حلاق','مطعم','نشاط آخر'];
  const customCategory=!known.includes(draft.category);if(customCategory)categorySelect.value='نشاط آخر';
  const categoryField=document.createElement('label');categoryField.className='field';categoryField.id='custom-category-field';categoryField.hidden=categorySelect.value!=='نشاط آخر';categoryField.innerHTML=`<span>نوع نشاطك</span><input class="input" id="custom-category" maxlength="30" placeholder="مثلاً: مخبز، محل زهور، مركز عناية" value="${esc(customCategory?draft.category:'')}"><small>يظهر هذا الاسم أسفل اسم النشاط على البطاقة.</small>`;categorySelect.closest('.field').after(categoryField);
  const textPanel=controls.querySelectorAll('.card-option-panel')[0];
