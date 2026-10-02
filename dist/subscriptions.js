@@ -10,7 +10,7 @@ function statusOf(a){if(a.subscription.status==='suspended')return 'suspended';i
 const statusNames={active:'مفعّل',pending:'بانتظار التفعيل',expired:'منتهي',suspended:'موقوف'};
 const dateLabel=t=>t?new Date(t).toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric',timeZone:'Asia/Riyadh'}):'—';
 function canOperate(){return statusOf(shopAccount())==='active'&&shop().status==='active';}
-function extendDate(base,period){const d=new Date(base),day=d.getDate();d.setDate(1);period==='year'?d.setFullYear(d.getFullYear()+1):d.setMonth(d.getMonth()+1);const max=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,max));return d.getTime();}
+function extendDate(base,period){const d=new Date(base),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+(period==='year'?14:1));const max=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,max));return d.getTime();}
 function audit(action,a,extra=''){db.adminLogs.unshift({id:crypto.randomUUID(),action,user:a?.name||'إدارة المنصة',extra,time:Date.now()});}
 function activate(a,period,source='admin'){a.subscription={status:'active',period,expires:extendDate(Math.max(Date.now(),a.subscription.expires||0),period)};const s=db.shops.find(s=>s.id===a.shop);s.status='active';audit(source==='token'?'تفعيل بتوكن':'تفعيل / تجديد',a,period==='year'?'سنة':'شهر');save();}
 function whatsapp(){const a=account();const message=`مرحبًا، أرغب في الاشتراك في رِجعة بسعر 199 ريال للشهر وبطاقات غير محدودة.${a?`\nمعرّف الحساب: ${a.id}\nالنشاط: ${db.shops.find(s=>s.id===a.shop)?.name}\nالجوال: ${a.phone}`:''}`;window.location.assign(`https://wa.me/${db.settings.whatsapp}?text=${encodeURIComponent(message)}`);}
