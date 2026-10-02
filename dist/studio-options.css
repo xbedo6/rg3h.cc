@@ -22,3 +22,5 @@
 .background-plain.full-artwork .studio-heading,.background-plain.full-artwork .studio-bottom{background:transparent!important;backdrop-filter:none!important;padding:0}
 
 .loyalty-card.studio-card.stamp-emphasis-off .studio-stamp{opacity:1!important;filter:none!important;animation:none!important}
+
+.studio-card.points-display-bar .studio-stamps{display:none!important}.studio-points-progress{margin-top:24px;width:100%;color:#fff}.points-progress-label{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:10px}.points-progress-label b{color:var(--accent);font-weight:600}.points-track{height:12px;border-radius:20px;background:#ffffff26;overflow:hidden;direction:ltr}.points-track i{display:block;height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .35s}.studio-points-progress>small{display:block;margin-top:8px;font-size:10px;opacity:.7}.points-display-bar .studio-balance .balance-meter,.points-display-both .studio-balance .balance-meter{display:none}.studio-card.card-arabic .points-track{direction:rtl}
