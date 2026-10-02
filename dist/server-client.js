@@ -1,6 +1,6 @@
 'use strict';
 let serverMode=false,principal=null,otpChallenge='',requestBusy=false;
-async function api(url,data){const r=await fetch(url,{method:data?'POST':'GET',headers:data?{'Content-Type':'application/json'}:{},body:data?JSON.stringify(data):undefined,credentials:'same-origin'});const j=await r.json();if(!r.ok)throw Error(j.error||'تعذر تنفيذ الطلب.');return j;}
+async function api(url,data){const r=await fetch(url,{method:data?'POST':'GET',headers:data?{'Content-Type':'application/json'}:{},body:data?JSON.stringify(data):undefined,credentials:'same-origin'});const j=await r.json();if(!r.ok){const error=Error(j.error||'تعذر تنفيذ الطلب.');error.status=r.status;throw error;}return j;}
 function acceptServer(j){db=j.db;principal=j.principal;signedAccount=principal.account||db.accounts.find(a=>a.shop===principal.shop)?.id||db.accounts[0]?.id;role={owner:'owner',employee:'staff',customer:'client',admin:'admin'}[principal.kind];if(role==='staff'){staffEmployee=principal.employee;view='scan';}if(role==='client'){clientStage='card';db.member=principal.member;}save=()=>{};}
 async function serverCommand(data,{redraw=true}={}){if(requestBusy)throw Error('انتظر اكتمال العملية الحالية.');requestBusy=true;try{const j=await api('/api/command',{...data,shop:data.shop||db.shop});const priorView=view,priorRole=role;acceptServer(j);if(principal.kind==='admin'){role=priorRole;view=priorView;}else if(principal.kind==='owner')view=priorView;if(redraw)render();return j.result;}finally{requestBusy=false;}}
 const decoratedRender=render;
