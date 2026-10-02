@@ -7,3 +7,4 @@ body.neon-auth:before{content:'';position:fixed;inset:0;pointer-events:none;back
 body.neon-auth{background-repeat:no-repeat;background-attachment:fixed}
 
 .neon-auth .auth-panel .glow-button{background:#163d31!important;border-color:#d6dcd147;color:#fff5d1!important}.neon-auth .auth-panel .glow-orbit{background:#234c3d;color:#ffdf83}.neon-auth .public-nav .btn{background:#ffdf83!important;color:#18372c!important}
+.neon-auth .new-business-option{background:#ffffff06!important;border-color:#cbd1cd30!important;color:#e8eee8!important;border-radius:12px}.neon-auth .new-business-option input{accent-color:#ffdf83}.neon-auth .glow-orbit:before{background:conic-gradient(from 0deg,transparent 20%,#719f85 37%,#ffdf83 48%,transparent 64%,#cbd1cd 84%,transparent)}.neon-auth .glow-orbit:after{background:linear-gradient(135deg,#234c3d,#102d24)}
