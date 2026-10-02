@@ -20,3 +20,5 @@
 .loyalty-card.studio-card.background-glow:after{display:none!important}
 .background-plain .studio-stamp.earned{filter:none!important}
 .background-plain.full-artwork .studio-heading,.background-plain.full-artwork .studio-bottom{background:transparent!important;backdrop-filter:none!important;padding:0}
+
+.loyalty-card.studio-card.stamp-emphasis-off .studio-stamp{opacity:1!important;filter:none!important;animation:none!important}
