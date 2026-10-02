@@ -52,7 +52,7 @@ function organizeCardEditor(box){
  const rules=group('برنامج الولاء','اختر زيارات أو خصمًا أو نقاطًا، وحدد الاستحقاق.',true);
  for(const el of Array.from(old[0].children))if(!el.classList.contains('section-title'))rules.append(el);
  const displayRow=rules.querySelector('.form-row')||rules;displayRow.insertAdjacentHTML('beforeend',`<label class="field"><span>طريقة عرض التقدم</span><select data-enhance="pointsDisplay">${[['icons','عناصر ورموز · مثل الأكواب'],['bar','شريط تعبئة'],['both','شريط تعبئة مع العناصر']].map(([id,label])=>`<option value="${id}" ${(draft.pointsDisplay||(Loyalty.program(draft).type==='points'?'bar':'icons'))===id?'selected':''}>${label}</option>`).join('')}</select><small>طريقة العرض مستقلة عن نوع المكافأة: زيارات أو خصم أو نقاط.</small></label>`);
- const identity=group('بيانات البطاقة والنصوص','اسم نشاطك، لغة البطاقة والعبارة الاختيارية.');
+ const identity=group('بيانات البطاقة والنصوص','عنوان داخلي، اسم النشاط ولغة البطاقة.');identity.insertAdjacentHTML('beforeend',cardOption('title','عنوان البطاقة · يظهر لك في لوحة التحكم فقط',draft.title||shop().name||''));
  move('[data-card="name"]',identity);const nameField=identity.querySelector('[data-card="name"]').closest('.field');nameField.querySelector('span').textContent='اسم النشاط على البطاقة · اختياري';nameField.insertAdjacentHTML('beforeend','<small>اتركه فارغًا إذا أردت عرض الشعار فقط.</small>');move('[data-card="category"]',identity);
  const categorySelect=identity.querySelector('[data-card="category"]'),known=['','كافيه','مغسلة سيارات','متجر','صالون','حلاق','مطعم','نشاط آخر'];
  const customCategory=!known.includes(draft.category);if(customCategory)categorySelect.value='نشاط آخر';
