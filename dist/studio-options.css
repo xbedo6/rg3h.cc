@@ -11,3 +11,12 @@
 .loyalty-card.studio-card .studio-logo{border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;max-width:none;max-height:none;flex:none;object-fit:contain}
 #custom-category-field[hidden],.logo-edit-controls[hidden]{display:none!important}
 .logo-upload-editor{display:grid;grid-template-columns:130px 1fr;column-gap:18px;align-items:start}.logo-upload-editor>span,.logo-upload-editor>.upload-control,.logo-upload-editor>small{grid-column:1/-1}.logo-upload-editor>.media-preview{grid-column:1;margin:12px 0}.logo-upload-editor>.logo-edit-controls{grid-column:2;grid-row:2;margin-top:10px}.logo-edit-controls .field{margin-bottom:10px}.logo-edit-controls .field>span{font-size:12px}.logo-edit-controls input[type=range]{width:100%;accent-color:#315c49}.logo-upload-editor .uploaded-image{background:transparent;border:0;border-radius:0}.logo-upload-editor .uploaded-image img{border-radius:0;object-fit:contain}@media(max-width:450px){.logo-upload-editor{grid-template-columns:95px 1fr;column-gap:12px}}
+
+/* Background choice is the sole switch for the background light effect. */
+.loyalty-card.studio-card.background-plain,.loyalty-card.studio-card.background-glow{background:var(--card)!important}
+.loyalty-card.studio-card .studio-background{opacity:1!important}
+.loyalty-card.studio-card.background-plain:before,.loyalty-card.studio-card.background-plain:after{display:none!important}
+.loyalty-card.studio-card.background-glow:before{content:'';display:block;position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 20% 10%,#ffffff20,transparent 55%),linear-gradient(125deg,transparent 25%,#ffffff18 26%,transparent 48%);pointer-events:none}
+.loyalty-card.studio-card.background-glow:after{display:none!important}
+.background-plain .studio-stamp.earned{filter:none!important}
+.background-plain.full-artwork .studio-heading,.background-plain.full-artwork .studio-bottom{background:transparent!important;backdrop-filter:none!important;padding:0}

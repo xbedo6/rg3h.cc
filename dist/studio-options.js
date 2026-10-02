@@ -7,6 +7,7 @@ function decorationSVG(kind){
 const customizableCard=cardHTML;
 cardHTML=function(c,m=null,full=false){
  const box=document.createElement('div');box.innerHTML=customizableCard(c,m,full);const card=box.firstElementChild,p=Loyalty.program(c),en=c.cardLanguage==='en',num=n=>Number(n).toLocaleString(en?'en-US':'ar-SA'),member=m||{stamps:2,points:20,rewards:0,name:en?'Card preview':'معاينة البطاقة',id:'RJ-PREVIEW01'},balance=p.type==='points'?(member.points||0):(member.stamps||0),goal=p.type==='points'?p.pointsCost:c.target,ready=Loyalty.available(member,c),remaining=Math.max(0,goal-balance);
+ card.classList.add(c.pattern===true?'background-glow':'background-plain');card.classList.remove('studio-shine');
  card.dir=en?'ltr':'rtl';card.lang=en?'en':'ar';card.classList.add(en?'card-english':'card-arabic',`balance-${c.balanceStyle||'plain'}`);card.classList.toggle('balance-hidden',c.hideBalance===true);
  const heading=card.querySelector('.studio-heading');heading.style.transform=`translate(${c.headlineX||0}px,${c.headlineY||0}px)`;
  const title=heading.querySelector('h3'),eyebrow=heading.querySelector('span'),program=heading.querySelector('p');title.textContent=c.headline||'';title.hidden=c.showHeadline!==true||!c.headline;eyebrow.textContent=c.eyebrow||'';eyebrow.hidden=!c.eyebrow;program.textContent=en?{visits:'Visits card',discount:'Discount card',points:'Points card'}[p.type]:{visits:'بطاقة الزيارات',discount:'بطاقة الخصومات',points:'بطاقة النقاط'}[p.type];program.hidden=c.showProgramLabel===false;heading.hidden=title.hidden&&eyebrow.hidden&&program.hidden;
@@ -56,15 +57,15 @@ function organizeCardEditor(box){
  const textExtra=advanced(identity,'عبارة مخصصة وخيارات النص');
  for(const el of Array.from(textPanel.children))if(el.tagName!=='SUMMARY')textExtra.append(el);
  const appearance=group('الخلفية والشعار','ارفع خلفيتك وشعارك، ثم اختر الألوان وطريقة العرض.');
- move('#background-file',appearance);move('[data-studio="backgroundMode"]',appearance);move('[data-studio="hideIdentity"]',appearance);
+ move('#background-file',appearance);move('[data-studio="hideIdentity"]',appearance);
  move('#logo-file',appearance);
  const logoField=appearance.querySelector('#logo-file').closest('.field');
  const logoExtra=document.createElement('div');logoExtra.className='logo-edit-controls';logoExtra.hidden=!draft.logo;logoField.querySelector('.media-preview').after(logoExtra);
  logoField.classList.add('logo-upload-editor');
  for(const key of ['logoSize','logoX','logoY'])move(`[data-enhance="${key}"]`,logoExtra);
  const colors=document.createElement('div');colors.className='form-row';appearance.append(colors);move('[data-card="color"]',colors);move('[data-card="accent"]',colors);
- const pattern=panel.querySelector('[data-action="pattern"]');if(pattern)appearance.append(pattern.closest('.field'));
- const shine=panel.querySelector('[data-studio="glassShine"]');if(shine){appearance.append(shine.closest('label')); }
+ const pattern=panel.querySelector('[data-action="pattern"]');if(pattern){const field=pattern.closest('.field');field.querySelector(':scope>span').textContent='تأثير الخلفية';field.querySelector('[data-value="dots"]').textContent='توهج';appearance.append(field);field.insertAdjacentHTML('beforeend','<small>سادة: صورتك الأصلية دون طبقات أو لمعة. توهج: تأثير ضوئي اختياري فوق الخلفية.</small>');}
+ const shine=panel.querySelector('[data-studio="glassShine"]');if(shine)shine.closest('label').remove();
  const elements=group('عناصر الولاء والرصيد','شكل العنصر قبل الزيارة وبعدها، وطريقة عرض العداد.');
  const iconOptions=panel.querySelector('.icon-options');if(iconOptions)elements.append(iconOptions.closest('.field'));
  move('#stamp-empty-file',elements);move('#stamp-file',elements);
