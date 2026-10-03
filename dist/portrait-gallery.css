@@ -8,3 +8,5 @@
 
 /* Stable slots: reveal the code without moving the card to the centre. */
 .portrait-card{filter:none;opacity:1!important;transition:transform .32s cubic-bezier(.22,.61,.36,1)}.portrait-face{box-shadow:0 24px 35px #001c2945,inset 0 0 0 1px #ffffff18}.portrait-card .studio-bottom{transition:transform .28s ease}.landing>.pricing{will-change:auto;transition:none}.landing .folder-plan{translate:none;transition:none}.portrait-gallery.is-dragging .portrait-card{transition:transform .1s linear}@media(prefers-reduced-motion:reduce){.portrait-card{transition:none}}
+
+.first-card-design{grid-column:1/-1;text-align:center;margin:-20px auto 72px;padding:0 22px;max-width:680px;color:#f4f8ef}.first-card-design .first-design-label{display:block;margin-bottom:12px;font-size:12px;color:#edda8a}.first-card-design h2{margin:0 0 12px;font-size:clamp(25px,3vw,38px);font-weight:750;line-height:1.4;letter-spacing:-.6px}.first-card-design p{margin:0;color:#d4e5de;font-size:15px;line-height:1.9}@media(max-width:760px){.first-card-design{margin:0 auto 48px}.first-card-design p{font-size:14px}}
