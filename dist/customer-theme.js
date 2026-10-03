@@ -1,6 +1,6 @@
 'use strict';
 function registrationTheme(s){
- const c=s.card||{},identity=[c.name,c.title,s.name,c.logo].join(' ').toLowerCase();
+ const c=s.card||{},identity=[c.name,c.title,s.name,(c.logo||'').startsWith('data:')?'':c.logo].join(' ').toLowerCase();
  if(/latte|لاتيه|لاتية|لاتي|لا كافي/.test(identity))return {id:'latte',logo:'/latte-logo.jpg',name:'لاتيه كافي',tag:'SPECIALTY COFFEE',headline:'قهوتك المفضلة.\nومكافأة تستاهلها.',intro:'كل زيارة لها طعم أجمل. انضم لبرنامج الولاء وخلي قهوتك القادمة أقرب.',accent:'#6b4631'};
  if(/sabon|صابونة|صابونه|صابون/.test(identity))return {id:'sabon',logo:'/sabonh-logo.png',name:'صابونة',tag:'A FRESH START, EVERY VISIT',headline:'لمعة جديدة.\nومزايا تزيد.',intro:'سيارتك تستاهل العناية، وأنت تستاهل المكافأة. سجّل بطاقتك وابدأ رحلتك معنا.',accent:'#096078'};
  if(/address|العنوان/.test(identity))return {id:'address',logo:'/address-logo.webp',name:'حلاق العنوان',tag:'THE ADDRESS · YOUR SIGNATURE',headline:'إطلالة لها عنوان.\nوولاء له تقدير.',intro:'عناية بالتفاصيل، في كل زيارة. انضم لبرنامج الولاء واستمتع بمزايا مصممة لك.',accent:'#e4c583'};
@@ -20,7 +20,7 @@ render=function(){
   document.querySelectorAll('.topbar,.public-nav').forEach(el=>el.remove());
   document.title=(shop().card.name||registrationTheme(shop()).name)+' · '+(clientStage==='card'?'بطاقتي':'تسجيل بطاقة الولاء');
   const logo=shop().card.logo||registrationTheme(shop()).logo,favicon=document.querySelector('link[rel=icon]');
-  if(favicon){if(logo)favicon.href=logo;else favicon.removeAttribute('href');}
+  if(favicon){favicon.removeAttribute('type');if(logo)favicon.href=logo;else favicon.removeAttribute('href');}
   document.querySelector('meta[property="og:title"]')?.setAttribute('content',document.title);
   document.querySelector('meta[name="description"]')?.setAttribute('content','سجل بطاقة الولاء الخاصة بنشاطك بالاسم ورقم الجوال.');
   document.querySelector('meta[property="og:description"]')?.setAttribute('content','سجل بطاقة الولاء الخاصة بنشاطك بالاسم ورقم الجوال.');
