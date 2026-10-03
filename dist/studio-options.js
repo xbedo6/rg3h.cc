@@ -7,7 +7,7 @@ function decorationSVG(kind){
 const customizableCard=cardHTML;
 cardHTML=function(c,m=null,full=false){
  const box=document.createElement('div');box.innerHTML=customizableCard(c,m,full);const card=box.firstElementChild,p=Loyalty.program(c),en=c.cardLanguage==='en',num=n=>Number(n).toLocaleString(en?'en-US':'ar-SA'),member=m||{stamps:2,points:20,rewards:0,name:en?'Card preview':'معاينة البطاقة',id:'RJ-PREVIEW01'},balance=p.type==='points'?(member.points||0):(member.stamps||0),goal=p.type==='points'?p.pointsCost:c.target,ready=Loyalty.available(member,c),remaining=Math.max(0,goal-balance);
- card.classList.toggle('stamp-emphasis-off',c.stampEmphasis===false);
+ card.classList.toggle('stamp-emphasis-off',c.stampEmphasis===false);card.classList.toggle('elements-glow-all',c.elementsGlow===true);card.classList.toggle('elements-glow-completed',c.completedGlow===true);const shade=document.createElement('span');shade.className='studio-background-shade';shade.setAttribute('aria-hidden','true');shade.style.opacity=String(Math.max(0,Math.min(85,Number(c.backgroundDim)||0))/100);card.append(shade);
  card.classList.add(c.pattern===true?'background-glow':'background-plain');card.classList.remove('studio-shine');
  card.dir=en?'ltr':'rtl';card.lang=en?'en':'ar';card.classList.add(en?'card-english':'card-arabic',`balance-${c.balanceStyle||'plain'}`);card.classList.toggle('balance-hidden',c.hideBalance===true);
  const categoryLabel=card.querySelector('.studio-identity small');if(categoryLabel)categoryLabel.hidden=!String(c.category||'').trim();
@@ -77,11 +77,11 @@ function organizeCardEditor(box){
  move('#stamp-empty-file',elements);move('#stamp-file',elements);
  const before=elements.querySelector('#stamp-empty-file')?.closest('.field')?.querySelector(':scope>span');if(before)before.textContent='صورة العنصر قبل الزيارة · اختياري';
  const after=elements.querySelector('#stamp-file')?.closest('.field')?.querySelector(':scope>span');if(after)after.textContent='صورة العنصر بعد الزيارة · اختياري';
- elements.insertAdjacentHTML('beforeend',cardToggle('stampEmphasis','تمييز العناصر المكتملة',draft.stampEmphasis!==false));
+ elements.insertAdjacentHTML('beforeend',cardToggle('stampEmphasis','تمييز العناصر المكتملة',draft.stampEmphasis!==false)+cardToggle('elementsGlow','إضاءة جميع العناصر',draft.elementsGlow===true)+cardToggle('completedGlow','إضاءة العناصر المكتملة',draft.completedGlow===true));
  elements.insertAdjacentHTML('beforeend','<p class="line-meta">عند إيقاف التمييز، تظهر جميع العناصر بوضوحها الطبيعي وتتغير الصورة فقط.</p>');
  elements.insertAdjacentHTML('beforeend','<p class="line-meta">تتبدل الصورتان تلقائيًا حسب رصيد العميل. عند عدم رفع صور، نستخدم الأيقونة التي اخترتها.</p>');
  const balance=controls.querySelector('[data-enhance="balanceStyle"]')?.closest('details');if(balance){balance.querySelector('summary').textContent='مظهر عداد الزيارات والنقاط';elements.append(balance);}
- const positioning=advanced(elements,'ترتيب العناصر وأماكنها · اختياري');
+ const positioning=advanced(elements,'ترتيب العناصر وأماكنها · اختياري');positioning.insertAdjacentHTML('beforeend',offsetControl('backgroundDim','تعتيم الخلفية وإبراز العناصر',draft.backgroundDim??0,0,85)+'<p class="line-meta">اسحب لزيادة التعتيم؛ تتأثر الخلفية فقط، وتبقى العناصر والشعار والرمز واضحة. تكبير العناصر متاح حتى ١٦٠ بكسل.</p>');
  const itemSelect=panel.querySelector('#studio-item-select');if(itemSelect)positioning.append(itemSelect.closest('.field'));
  for(const el of Array.from(panel.querySelectorAll('[data-item-control]')))positioning.append(el.closest('.field'));
  const resetItems=panel.querySelector('[data-action="studio-reset-items"]');if(resetItems)positioning.append(resetItems);

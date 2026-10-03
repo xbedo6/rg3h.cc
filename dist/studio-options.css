@@ -24,3 +24,9 @@
 .loyalty-card.studio-card.stamp-emphasis-off .studio-stamp{opacity:1!important;filter:none!important;animation:none!important}
 
 .studio-card.points-display-bar .studio-stamps{display:none!important}.studio-points-progress{margin-top:24px;width:100%;color:#fff}.points-progress-label{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:10px}.points-progress-label b{color:var(--accent);font-weight:600}.points-track{height:12px;border-radius:20px;background:#ffffff26;overflow:hidden;direction:ltr}.points-track i{display:block;height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .35s}.studio-points-progress>small{display:block;margin-top:8px;font-size:10px;opacity:.7}.points-display-bar .studio-balance .balance-meter,.points-display-both .studio-balance .balance-meter{display:none}.studio-card.card-arabic .points-track{direction:rtl}
+
+.loyalty-card.studio-card>.studio-background-shade{position:absolute!important;inset:0;background:#000;z-index:-1!important;pointer-events:none;border-radius:inherit}
+.loyalty-card.studio-card.elements-glow-all .studio-stamp{opacity:1!important}
+.loyalty-card.studio-card.elements-glow-all .studio-stamp>img,.loyalty-card.studio-card.elements-glow-all .studio-stamp>svg{filter:drop-shadow(0 0 4px var(--accent)) drop-shadow(0 0 11px color-mix(in srgb,var(--accent),transparent 25%))!important}
+.loyalty-card.studio-card.elements-glow-completed .studio-stamp.earned{opacity:1!important}
+.loyalty-card.studio-card.elements-glow-completed .studio-stamp.earned>img,.loyalty-card.studio-card.elements-glow-completed .studio-stamp.earned>svg{filter:drop-shadow(0 0 5px var(--accent)) drop-shadow(0 0 15px color-mix(in srgb,var(--accent),transparent 12%))!important}
