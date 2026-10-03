@@ -1,7 +1,7 @@
 'use strict';
 // Public card IDs only; no authenticated account or customer data in this gallery.
 const showcaseDesignURL="/showcase-designs.json";
-let showcaseDesigns=null,showcaseRequest=null;
+let showcaseDesigns=approvedShowcaseDesigns,showcaseRequest=null;
 const beforePortraitHome=homeHTML;
 function galleryCard(c,step=2){const p=Loyalty.program(c),member={id:'RJ-PREVIEW01',name:c.cardLanguage==='en'?'Card preview':'معاينة البطاقة',stamps:step,points:p.type==='points'?step*p.pointsPerVisit:0,rewards:0};return cardHTML(c,member,true);}
 function portraitMarkup(designs){return '<div class="portrait-space" aria-hidden="true"></div><div class="portrait-deck">'+designs.map((c,i)=>`<figure class="portrait-card" data-index="${i}" tabindex="0" role="button" aria-label="${esc(c.title||c.name||'بطاقة الولاء')}" aria-pressed="${i===1}"><div class="portrait-face">${galleryCard(c)}</div></figure>`).join('')+'</div>';}
