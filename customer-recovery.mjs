@@ -17,6 +17,7 @@ export function createCustomerRecovery({sql,load,hash,rate,fail,phone,status,acc
     try {
       sql.prepare('DELETE FROM customer_recovery WHERE expires<? OR (shop=? AND member=?)').run(Date.now(),sh.id,member.id);
       sql.prepare('INSERT INTO customer_recovery VALUES(?,?,?,?,?,0)').run(hash(token),sh.id,member.id,JSON.stringify({kind:principal.kind,id:principal.employee||principal.account}),expires);
+      sql.prepare('INSERT INTO recovery_audit(shop,member,issuer_kind,issuer_id,event,time) VALUES(?,?,?,?,?,?)').run(sh.id,member.id,principal.kind,principal.employee||principal.account,'issued',Date.now());
       sql.exec('COMMIT');
     } catch(e) {sql.exec('ROLLBACK');throw e;}
     return {url:origin+'/?recover=1#'+token,expires,name:member.name};
@@ -38,6 +39,7 @@ export function createCustomerRecovery({sql,load,hash,rate,fail,phone,status,acc
       }
       const principal={kind:'customer',shop:sh.id,member:member.id},token=randomBytes(32).toString('hex');
       sql.prepare('INSERT INTO sessions VALUES(?,?,?)').run(hash(token),JSON.stringify(principal),Date.now()+365*86400000);
+      sql.prepare('INSERT INTO recovery_audit(shop,member,issuer_kind,issuer_id,event,time) VALUES(?,?,?,?,?,?)').run(sh.id,member.id,issuer.kind,issuer.id,'consumed',Date.now());
       sql.exec('COMMIT');return {principal,token};
     } catch(e) {sql.exec('ROLLBACK');throw e;}
   }

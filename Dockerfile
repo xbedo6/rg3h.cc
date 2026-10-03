@@ -1,6 +1,6 @@
 FROM node:24-bookworm-slim
 WORKDIR /app
-COPY production.mjs email-auth.mjs mail.mjs customer-recovery.mjs ./
+COPY production.mjs email-auth.mjs mail.mjs customer-recovery.mjs support.mjs state-cache.mjs operations.mjs backup-worker.mjs restore-backup.mjs ./
 COPY dist ./dist
 RUN mkdir -p /data && chown node:node /data
 USER node
