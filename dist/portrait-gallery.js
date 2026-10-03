@@ -1,34 +1,38 @@
 'use strict';
+// Public card IDs only; no authenticated account or customer data in this gallery.
+const showcaseDesignURL="/showcase-designs.json";
+let showcaseDesigns=null,showcaseRequest=null;
 const beforePortraitHome=homeHTML;
-homeHTML=function(){
- const box=document.createElement('div');box.innerHTML=beforePortraitHome();
- box.querySelectorAll('.gallery-heading,.gallery-hint').forEach(el=>el.remove());
- const stage=box.querySelector('.media-gallery');
- if(stage){stage.className='media-gallery portrait-gallery';stage.setAttribute('role','region');stage.setAttribute('aria-label','تصاميم صابونة ولاتيه وحلاق العنوان، حرّك الماوس أو اسحب أو استخدم الأسهم');stage.innerHTML='<div class="portrait-space" aria-hidden="true"></div><div class="portrait-deck">'+[['sabon','تصميم بطاقة صابونة'],['latte','تصميم بطاقة لاتيه كافي'],['address','تصميم بطاقة حلاق العنوان']].map(([id,label],i)=>`<figure class="portrait-card portrait-${id}" data-position="${i-1}"><div class="portrait-face"><img src="/hero-${id}-card.png" alt="${label}" width="226" height="402" decoding="async" draggable="false"></div></figure>`).join('')+'</div>';}
- return box.innerHTML;
-};
+function galleryCard(c,step=2){const p=Loyalty.program(c),member={id:'RJ-PREVIEW01',name:c.cardLanguage==='en'?'Card preview':'معاينة البطاقة',stamps:step,points:p.type==='points'?step*p.pointsPerVisit:0,rewards:0};return cardHTML(c,member,true);}
+function portraitMarkup(designs){return '<div class="portrait-space" aria-hidden="true"></div><div class="portrait-deck">'+designs.map((c,i)=>`<figure class="portrait-card" data-index="${i}" tabindex="0" role="button" aria-label="${esc(c.title||c.name||'بطاقة الولاء')}" aria-pressed="${i===1}"><div class="portrait-face">${galleryCard(c)}</div></figure>`).join('')+'</div>';}
+homeHTML=function(){const box=document.createElement('div');box.innerHTML=beforePortraitHome();box.querySelectorAll('.gallery-heading,.gallery-hint').forEach(el=>el.remove());const intro=box.querySelector('.hero-copy>p:not(.landing-kicker)');if(intro)intro.textContent='زيارات، خصومات أو نقاط. صمّم بطاقاتك، اربط فروعك وفريقك، وتابع رجعة عملائك من مكان واحد.';const stage=box.querySelector('.media-gallery');if(stage){stage.className='media-gallery portrait-gallery';stage.setAttribute('role','region');stage.setAttribute('aria-label','معرض بطاقات ثلاثي الأبعاد، اسحب أو استخدم الأسهم للتنقل');stage.innerHTML=showcaseDesigns?portraitMarkup(showcaseDesigns):'<div class="portrait-space" aria-hidden="true"></div>';}return box.innerHTML;};
 const beforePortraitBind=bindGallery;
 bindGallery=function(){
  const stage=document.querySelector('.portrait-gallery');if(!stage)return beforePortraitBind();
+ if(!showcaseDesigns){showcaseRequest||=fetch(showcaseDesignURL).then(r=>{if(!r.ok)throw Error('Showcase unavailable');return r.json();}).then(data=>{if(!Array.isArray(data)||data.length<1)throw Error('Invalid showcase');showcaseDesigns=data;});showcaseRequest.then(()=>{if(!stage.isConnected)return;stage.innerHTML=portraitMarkup(showcaseDesigns);bindGallery();}).catch(()=>{stage.setAttribute('aria-label','تعذر تحميل معرض البطاقات');showcaseRequest=null;});return;}
  const cards=[...stage.querySelectorAll('.portrait-card')],reduce=matchMedia('(prefers-reduced-motion: reduce)');
- let frame=0,drag=null,pan=0,targetPan=0,targetX=0,targetY=0,x=0,y=0,pop=0,targetPop=0,active=true;
+ let frame=0,alive=true,index=0,position=0,drag=null,dragOffset=0,tiltX=0,tiltY=0,x=0,y=0,pop=0,hoverTimer=0,lastHover=null;
  stage.tabIndex=0;
- function paint(){frame=0;const rect=stage.getBoundingClientRect(),w=stage.clientWidth,small=w<640,cardWidth=small?Math.min(170,w*.31):Math.min(278,w*.235),space=small?cardWidth*.9:cardWidth*1.18;
-  const progress=Math.max(0,Math.min(1,(innerHeight-rect.top)/(innerHeight*.85)));targetPop=reduce.matches?0:progress;
-  x+=(targetX-x)*.14;y+=(targetY-y)*.14;pop+=(targetPop-pop)*.12;pan+=(targetPan-pan)*.14;
-  cards.forEach(card=>{const p=Number(card.dataset.position),z=reduce.matches?0:pop*(p===0?140:70),scale=reduce.matches?1:.88+pop*.13;
-   card.style.width=cardWidth+'px';card.style.transform=`translate(-50%,-50%) translate3d(${p*space+x*(small?20:44)+pan}px,${p===0?-14:20}px,${z}px) rotateX(${reduce.matches?0:-y*9+4-pop*4}deg) rotateY(${reduce.matches?0:-p*16+x*16}deg) rotateZ(${reduce.matches?0:p*3-x*2}deg) scale(${scale})`;card.style.zIndex=String(p===0?3:2);
-  });
-  if(active&&!reduce.matches&&(Math.abs(targetX-x)+Math.abs(targetY-y)+Math.abs(targetPop-pop)+Math.abs(targetPan-pan)>.008))schedule();
- }
- function schedule(){if(!frame&&active)frame=requestAnimationFrame(paint);}
- function move(e){const r=stage.getBoundingClientRect();if(drag!==null){const limit=stage.clientWidth*(stage.clientWidth<640?.025:.07);targetPan=Math.max(-limit,Math.min(limit,e.clientX-drag));}targetX=reduce.matches?0:Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width*2-1));targetY=reduce.matches?0:Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height*2-1));schedule();}
- function down(e){if(!e.isPrimary)return;drag=e.clientX;stage.setPointerCapture(e.pointerId);stage.classList.add('is-dragging');}
- function release(){drag=null;targetPan=0;stage.classList.remove('is-dragging');targetX=0;targetY=0;schedule();}
- function leave(){if(drag!==null)return;targetX=targetY=0;schedule();}
- function key(e){if(!['ArrowLeft','ArrowRight','Home','Escape'].includes(e.key))return;e.preventDefault();targetX=e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0;targetY=0;schedule();}
- stage.addEventListener('pointermove',move);stage.addEventListener('pointerdown',down);stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);stage.addEventListener('pointerleave',leave);stage.addEventListener('keydown',key);
+ const wrap=v=>((v%cards.length)+cards.length)%cards.length;
+ const relative=i=>{let d=i-wrap(index);return d-Math.round(d/cards.length)*cards.length;};
+ function select(next){index=next;cards.forEach((card,i)=>{const active=i===wrap(index);card.classList.toggle('is-active',active);card.setAttribute('aria-pressed',String(active));card.querySelectorAll('.studio-code,.studio-member').forEach(el=>el.setAttribute('aria-hidden',String(!active)));});schedule();}
+ function paint(){frame=0;paintLandingDepth();const rect=stage.getBoundingClientRect(),small=stage.clientWidth<640,w=small?Math.min(172,stage.clientWidth*.31):Math.min(278,stage.clientWidth*.235),space=w*(small?.98:1.2);position+=reduce.matches?index-position:(index-position)*.16;x+=(tiltX-x)*.12;y+=(tiltY-y)*.12;const targetPop=reduce.matches?0:Math.max(0,Math.min(1,(innerHeight-rect.top)/(innerHeight*.8)));pop+=(targetPop-pop)*.12;
+ cards.forEach((card,i)=>{let p=i-position+dragOffset;p-=Math.round(p/cards.length)*cards.length;const distance=Math.abs(p),z=reduce.matches?0:distance*55+pop*75;card.style.width=w+'px';card.style.opacity=String(Math.max(0,Math.min(1,(1.65-distance)*4))); card.style.zIndex=String(10-Math.round(distance*3));card.style.transform=`translate(-50%,-50%) translate3d(${p*space+x*12}px,${distance*8}px,${z}px) rotateX(${reduce.matches?0:-y*5}deg) rotateY(${reduce.matches?0:-p*20+x*5}deg) scale(${reduce.matches?1:.94+pop*.05})`;const rendered=card.querySelector('.studio-card');rendered.style.width='340px';rendered.style.transform=`scale(${w/340})`;const bottom=card.querySelector('.studio-bottom'),reward=card.querySelector('.studio-reward');if(bottom&&reward)card.style.setProperty('--peek-offset',Math.max(0,bottom.offsetHeight-reward.offsetHeight)+'px');});
+ if(alive&&!reduce.matches&&(Math.abs(index-position)+Math.abs(tiltX-x)+Math.abs(tiltY-y)+Math.abs(targetPop-pop)>.006))schedule();}
+ function schedule(){if(!frame&&alive)frame=requestAnimationFrame(paint);}
+ function move(e){const r=stage.getBoundingClientRect();tiltX=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width*2-1));tiltY=Math.max(-1,Math.min(1,(e.clientY-r.top)/r.height*2-1));if(drag){dragOffset=(e.clientX-drag.x)/Math.max(130,stage.clientWidth*.25);drag.moved=Math.abs(e.clientX-drag.x)>8;}schedule();}
+ function down(e){if(drag||e.isPrimary===false||(e.button!==undefined&&e.button!==0))return;drag={x:e.clientX,moved:false};if(e.pointerId!==undefined)stage.setPointerCapture(e.pointerId);stage.classList.add('is-dragging');}
+ function up(e){if(!drag)return;dragOffset=(e.clientX-drag.x)/Math.max(130,stage.clientWidth*.25);drag.moved=Math.abs(e.clientX-drag.x)>8;if(drag.moved)select(index-Math.round(dragOffset));else{const card=drag.card;if(card)select(index+relative(Number(card.dataset.index)));}drag=null;dragOffset=0;stage.classList.remove('is-dragging');schedule();}
+ function cancel(){drag=null;dragOffset=0;stage.classList.remove('is-dragging');schedule();}
+ function key(e){if(!['ArrowLeft','ArrowRight','Home','Enter',' '].includes(e.key))return;e.preventDefault();const card=e.target.closest('.portrait-card');select(e.key==='Home'?0:e.key==='ArrowLeft'?index-1:e.key==='ArrowRight'?index+1:card?index+relative(Number(card.dataset.index)):index);}
+ function hover(e){if(drag||e.pointerType==='touch')return;const card=e.target.closest('.portrait-card');if(!card||card===lastHover)return;lastHover=card;clearTimeout(hoverTimer);hoverTimer=setTimeout(()=>{if(alive&&!drag)select(index+relative(Number(card.dataset.index)));},180);}
+ stage.addEventListener('mousemove',move);stage.addEventListener('mousedown',e=>{down(e);if(drag)drag.card=e.target.closest('.portrait-card');});stage.addEventListener('mouseup',up);stage.addEventListener('pointermove',move);stage.addEventListener('pointerdown',e=>{down(e);if(drag)drag.card=e.target.closest('.portrait-card');});stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',cancel);stage.addEventListener('pointerleave',()=>{lastHover=null;clearTimeout(hoverTimer);if(!drag){tiltX=tiltY=0;schedule();}});stage.addEventListener('pointerover',hover);stage.addEventListener('keydown',key);
  window.addEventListener('scroll',schedule,{passive:true});const observer=new ResizeObserver(schedule);observer.observe(stage);reduce.addEventListener('change',schedule);
- stage._cleanup=()=>{active=false;if(frame)cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('scroll',schedule);reduce.removeEventListener('change',schedule);};schedule();
+ let step=2;const animation=setInterval(()=>{if(document.hidden||reduce.matches||drag)return;const r=stage.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;step=(step+1)%5;cards.forEach((card,i)=>{card.dataset.demoStep=String(step);const fresh=document.createElement('div');fresh.innerHTML=galleryCard(showcaseDesigns[i],step);card.querySelectorAll('.studio-stamp').forEach((stamp,n)=>{const next=fresh.querySelectorAll('.studio-stamp')[n],earned=next.classList.contains('earned');stamp.classList.toggle('earned',earned);stamp.title=next.title;const img=stamp.querySelector('img'),nextImg=next.querySelector('img');if(img&&nextImg&&img.getAttribute('src')!==nextImg.getAttribute('src')){img.src=nextImg.getAttribute('src');img.alt=nextImg.alt;stamp.classList.remove('demo-changing');void stamp.offsetWidth;stamp.classList.add('demo-changing');}});for(const selector of ['.studio-balance','.studio-points-progress','.studio-reward>span']){const old=card.querySelector(selector),next=fresh.querySelector(selector);if(old&&next)old.innerHTML=next.innerHTML;}const stamps=card.querySelector('.studio-stamps');if(stamps)stamps.setAttribute('aria-label',fresh.querySelector('.studio-stamps').getAttribute('aria-label'));});select(index);paint();},5000);
+ stage._cleanup=()=>{alive=false;clearInterval(animation);clearTimeout(hoverTimer);if(frame)cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('scroll',schedule);reduce.removeEventListener('change',schedule);};select(index);
+
 };
+function paintLandingDepth(){const pricing=document.querySelector('.landing .pricing');if(!pricing)return;const rect=pricing.getBoundingClientRect(),progress=matchMedia('(prefers-reduced-motion: reduce)').matches?1:Math.max(0,Math.min(1,(innerHeight-rect.top)/(innerHeight*.65)));pricing.style.setProperty('--section-rise',(1-progress)*70+'px');pricing.style.setProperty('--section-scale',String(.94+progress*.06));pricing.style.setProperty('--section-depth',String(progress));pricing.querySelectorAll('.folder-plan').forEach((el,i)=>el.style.setProperty('--plan-rise',(1-progress)*(40+i*18)+'px'));}
 render();
+
+
