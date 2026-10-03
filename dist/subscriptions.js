@@ -6,7 +6,7 @@ let newBusiness=false;let loginType='owner',loginStep='phone',loginPhone='',logi
 let signedAccount=db.accounts.find(a=>a.shop===db.shop)?.id||db.accounts[0].id,publicPage=new URLSearchParams(location.search).has('join')?'':'home';
 const account=()=>db.accounts.find(a=>a.id===signedAccount);
 const shopAccount=()=>db.accounts.find(a=>a.shop===(shop().business||shop().id));
-function statusOf(a){if(a.subscription.status==='suspended')return 'suspended';if(!a.subscription.expires)return 'pending';return a.subscription.expires>Date.now()?'active':'expired';}
+function statusOf(a){if(a?.subscription?.accessOnly)return a.subscription.status;if(a.subscription.status==='suspended')return 'suspended';if(!a.subscription.expires)return 'pending';return a.subscription.expires>Date.now()?'active':'expired';}
 const statusNames={active:'مفعّل',pending:'بانتظار التفعيل',expired:'منتهي',suspended:'موقوف'};
 const dateLabel=t=>t?new Date(t).toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric',timeZone:'Asia/Riyadh'}):'—';
 function canOperate(){return statusOf(shopAccount())==='active'&&shop().status==='active';}
