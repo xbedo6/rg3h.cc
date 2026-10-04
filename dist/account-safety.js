@@ -24,7 +24,7 @@ render=function(){
  if(serverMode&&role==='client'){
   document.querySelectorAll('.steps .step-number').forEach((el,i)=>el.textContent=fmt(i+1));
   if(clientStage==='phone')document.querySelector('.phone-bottom')?.insertAdjacentHTML('beforeend','<button type="button" class="btn quiet full mt" data-action="recovery-help">كيف أسترجع بطاقتي؟</button>');
-  document.querySelectorAll('.phone-bottom').forEach(el=>{if(el.textContent.includes('معاينة تجريبية'))el.textContent='اعرض رمز البطاقة للموظف. إضافة المحافظ ستتاح بعد اكتمال الربط.';});
+  document.querySelectorAll('.phone-bottom').forEach(el=>{if(el.textContent.includes('معاينة تجريبية'))el.textContent='اعرض رمز البطاقة للموظف. إضافة البطاقة إلى محافظ الجوال متاحة من زر إضافة البطاقة.';});
  }
 };
 window.addEventListener('click',async e=>{
