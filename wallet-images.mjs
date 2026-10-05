@@ -10,7 +10,8 @@ export async function walletImages(card,member,dataDir){
  if(card.backgroundDim)overlays.push({input:Buffer.from('<svg width="690" height="1010"><rect width="100%" height="100%" fill="black" opacity="'+Math.min(.85,card.backgroundDim/100)+'"/></svg>'),left:0,top:0});
  const p=Loyalty.program(card),earned=p.type==='points'?Math.min(card.target,Math.floor((member.points||0)/p.pointsCost*card.target)):member.stamps||0,n=card.target||4;
  const stripLayers=[],positions=WalletLayout.positions(card);
- for(let i=0;i<n;i++){
+ const progress=WalletLayout.progress(card,member);if(progress.mode!=='icons'&&progress.mode!=='none'){overlays.push({input:Buffer.from(WalletLayout.progressSVG(card,member)),left:0,top:0});stripLayers.push({input:await sharp(Buffer.from(WalletLayout.progressSVG(card,member))).extract({left:0,top:230,width:690,height:230}).resize(1080,360).png().toBuffer(),left:0,top:0});}
+ for(let i=0;progress.mode==='icons'&&i<n;i++){
   const item=positions[i],size=Math.round(Math.min(300,Math.max(32,(item?.size||38)*2))),isEarned=i<earned,src=isEarned?card.stampImage:(card.stampEmptyImage||card.stampImage);
   let bytes;if(src)bytes=await sharp(source(src,dataDir),{limitInputPixels:40000000}).resize(size,size,{fit:'contain',background:{r:0,g:0,b:0,alpha:0}}).png().toBuffer();
   else bytes=Buffer.from(WalletLayout.art(card,isEarned,size));
