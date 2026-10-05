@@ -16,3 +16,5 @@
 .landing>.pricing:after{inset:auto!important;left:0!important;right:0!important;top:0!important;width:100%;height:var(--pricing-backdrop-height,920px);border-radius:38px;animation:none!important;transform:none!important;background:radial-gradient(ellipse at var(--ash-x,35%) var(--ash-y,45%),#d6d8d330,transparent 45%),linear-gradient(130deg,#0b1512,#333936,#131a17);box-shadow:0 30px 65px #001b2840,inset 0 0 0 1px #ced6d126}
 .landing>.pricing .folder-plan.folder-open{z-index:3}
 @media(max-width:600px){.landing>.pricing:after{border-radius:26px}}
+
+@media(min-width:640px){.media-gallery.portrait-gallery.gallery-four{height:1100px!important}}
