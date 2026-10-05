@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /mail/
+Sitemap: https://rg3h.cc/sitemap.xml
