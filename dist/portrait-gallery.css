@@ -17,4 +17,4 @@
 .landing>.pricing .folder-plan.folder-open{z-index:3}
 @media(max-width:600px){.landing>.pricing:after{border-radius:26px}}
 
-@media(min-width:640px){.media-gallery.portrait-gallery.gallery-four{height:1100px!important}}
+@media(min-width:640px){.media-gallery.portrait-gallery.gallery-four{height:650px!important}}
