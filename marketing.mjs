@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {templateSpec,templateComponents,normalizedTemplateImage} from './marketing-templates.mjs';
 import {createMarketingContacts} from './marketing-contacts.mjs';
 export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetch}){
  const contacts=createMarketingContacts({sql,load,fail});
@@ -8,6 +9,7 @@ export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetc
  const list=kind=>sql.prepare('SELECT id,json,updated FROM marketing_drafts WHERE kind=? ORDER BY updated DESC LIMIT 100').all(kind).map(x=>({...JSON.parse(x.json),id:x.id,updated:x.updated}));
  const ready=()=>!!(env.META_WHATSAPP_TOKEN&&config().wabaId&&config().phoneId&&config().version);
  async function graph(suffix,method='GET',payload){if(!ready())fail('أكمل معرّفات الربط واحفظ META_WHATSAPP_TOKEN سرّيًا في الاستضافة.',409);const c=config();let r;try{r=await fetcher(`https://graph.facebook.com/${c.version}/${suffix}`,{method,headers:{Authorization:`Bearer ${env.META_WHATSAPP_TOKEN}`,'Content-Type':'application/json'},...(payload?{body:JSON.stringify(payload)}:{}),signal:AbortSignal.timeout(15000)});}catch{fail('تعذر تأكيد استجابة ميتا. لا تكرر الإرسال قبل مراجعة سجل ميتا.',502);}let data;try{data=await r.json();}catch{fail('استجابة ميتا غير مكتملة.',502);}if(!r.ok)fail('رفضت ميتا الطلب. رمز الخطأ: '+(data.error?.code||r.status),502);return data;}
+ async function uploadImage(data){const c=config();if(!/^\d{5,40}$/.test(c.appId||''))fail('أضف معرّف تطبيق ميتا لرفع صورة القالب.');const bytes=await normalizedTemplateImage(data,fail),session=await graph(c.appId+'/uploads?file_length='+bytes.length+'&file_type=image%2Fjpeg&file_name=template.jpg','POST');if(!session.id||!/^upload:[A-Za-z0-9_?=:.%+\/-]+$/.test(session.id))fail('لم تكتمل جلسة رفع الصورة.',502);let response;try{response=await fetcher('https://graph.facebook.com/'+c.version+'/'+session.id,{method:'POST',headers:{Authorization:'OAuth '+env.META_WHATSAPP_TOKEN,file_offset:'0','Content-Type':'image/jpeg'},body:bytes,signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok||!result.h)fail('تعذر اعتماد صورة القالب لدى ميتا.',502);return result.h;}catch(e){if(e.status)throw e;fail('تعذر تأكيد رفع الصورة لدى ميتا.',502);}}
  async function handle(req,url,principal,b={}){
   if(principal?.kind!=='admin')fail('قسم التسويق متاح للإدارة فقط.',403);
   rate('marketing-admin:'+principal.account,60,60000);
@@ -16,7 +18,8 @@ export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetc
   if(req.method==='GET'&&url.pathname==='/api/marketing/state')return {catalog:contacts.catalog(),settings:config(),tokenConfigured:!!env.META_WHATSAPP_TOKEN,ready:ready(),templates:list('template'),campaigns:list('campaign'),tests:sql.prepare('SELECT * FROM marketing_tests ORDER BY created DESC LIMIT 30').all()};
   if(req.method!=='POST')fail('المسار غير موجود.',404);
   if(url.pathname==='/api/marketing/settings'){
-   const c={wabaId:text(b.wabaId,40),phoneId:text(b.phoneId,40),version:text(b.version,12)};
+   const c={wabaId:text(b.wabaId,40),phoneId:text(b.phoneId,40),version:text(b.version,12),appId:text(b.appId,40)};
+   if(c.appId&&!/^\d{5,40}$/.test(c.appId))fail('راجع معرّف تطبيق ميتا.');
    if(!/^\d{5,40}$/.test(c.wabaId)||!/^\d{5,40}$/.test(c.phoneId)||!/^v\d{1,3}\.0$/.test(c.version))fail('راجع معرّفات ميتا وإصدار Graph API.');
    sql.prepare('INSERT INTO marketing_settings(id,json) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(JSON.stringify(c));return {ok:true};
   }
@@ -25,15 +28,17 @@ export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetc
   if(url.pathname==='/api/marketing/draft'){
    const kind=b.kind;if(!['template','campaign'].includes(kind))fail('نوع المسودة غير صحيح.');
    const draft={title:text(b.title,100),purpose:['loyalty','general'].includes(b.purpose)?b.purpose:'general',name:text(b.name,80),language:text(b.language,12)||'ar',body:text(b.body,1024),status:'draft'};
-   if(kind==='campaign'&&b.audience){const audience={business:text(b.audience.business,80)||'platform',card:text(b.audience.card,80),branch:text(b.audience.branch,80),consent:'opted_in',selected:Array.isArray(b.audience.selected)?b.audience.selected.map(x=>text(x,80)).slice(0,1000):[]};contacts.filtered(audience);draft.audience=audience;}
+   if(kind==='campaign'&&b.audience){const audience={business:text(b.audience.business,80)||'platform',card:text(b.audience.card,80),branch:text(b.audience.branch,80),consent:'opted_in',group:text(b.audience.group,80),selected:Array.isArray(b.audience.selected)?b.audience.selected.map(x=>text(x,80)).slice(0,1000):[]};contacts.filtered(audience);draft.audience=audience;}
+   if(kind==='template')Object.assign(draft,templateSpec({...b,body:draft.body},fail));
    if(!draft.title||!draft.body)fail('أدخل العنوان ونص القالب أو الحملة.');
    if(draft.name&&!/^[a-z0-9_]{1,80}$/.test(draft.name))fail('اسم القالب أحرف إنجليزية صغيرة وأرقام وشرطة سفلية فقط.');
    const id=b.id?text(b.id,50):randomUUID();if(b.id&&!sql.prepare('SELECT id FROM marketing_drafts WHERE id=? AND kind=?').get(id,kind))fail('المسودة غير موجودة.',404);
+   if(b.id){const prior=sql.prepare('SELECT json FROM marketing_drafts WHERE id=?').get(id);if(prior&&JSON.parse(prior.json).status==='submitted')fail('القالب أُرسل للمراجعة؛ أنشئ مسودة جديدة باسم آخر لتعديله.');}
    sql.prepare('INSERT INTO marketing_drafts(id,kind,json,updated) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json,updated=excluded.updated').run(id,kind,JSON.stringify(draft),Date.now());return {ok:true,id};
   }
   if(url.pathname==='/api/marketing/template-submit'){
-   if(b.confirm!==true)fail('أكد إرسال القالب للمراجعة.');const row=sql.prepare("SELECT json FROM marketing_drafts WHERE id=? AND kind='template'").get(text(b.id,50));if(!row)fail('القالب غير موجود.',404);const d=JSON.parse(row.json);if(!d.name)fail('أدخل اسم القالب.');if(/\{\{|\}\}/.test(d.body))fail('تجربة الإدارة الأولى تدعم القوالب النصية دون متغيرات؛ استخدم قالبًا ثابتًا للاختبار.');
-   const result=await graph(config().wabaId+'/message_templates','POST',{name:d.name,language:d.language,category:'MARKETING',components:[{type:'BODY',text:d.body}]});return {result};
+   if(b.confirm!==true)fail('أكد إرسال القالب للمراجعة.');const row=sql.prepare("SELECT json FROM marketing_drafts WHERE id=? AND kind='template'").get(text(b.id,50));if(!row)fail('القالب غير موجود.',404);const d=JSON.parse(row.json);if(!d.name)fail('أدخل اسم القالب.');if(d.status==='submitted')fail('القالب أُرسل للمراجعة بالفعل؛ حدّث قائمة ميتا لمعرفة حالته.');const spec=templateSpec(d,fail),handle=spec.headerType==='IMAGE'?await uploadImage(spec.image):null;
+   const result=await graph(config().wabaId+'/message_templates','POST',{name:d.name,language:d.language,category:spec.category,components:templateComponents(spec,handle)});sql.prepare('UPDATE marketing_drafts SET json=?,updated=? WHERE id=?').run(JSON.stringify({...d,status:'submitted',metaId:result.id||'',metaStatus:result.status||'PENDING'}),Date.now(),text(b.id,50));return {result};
   }
   if(url.pathname==='/api/marketing/test'){
    rate('marketing-test:'+principal.account,5,3600000);

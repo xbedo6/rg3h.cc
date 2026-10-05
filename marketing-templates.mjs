@@ -1,0 +1,17 @@
+import {Buffer} from 'node:buffer';
+export function templateSpec(input,fail){
+ const str=(v,n)=>{const s=String(v||'').trim();if(s.length>n)fail('أحد حقول القالب أطول من الحد المسموح.');return s;};
+ const body=str(input.body,1024),headerType=input.headerType||'NONE',category=input.category||'MARKETING';
+ if(!['MARKETING','UTILITY'].includes(category)||!['NONE','TEXT','IMAGE'].includes(headerType))fail('نوع القالب أو الترويسة غير مدعوم.');
+ const header=str(input.header,60),footer=str(input.footer,60),variables=[...body.matchAll(/\{\{(\d+)\}\}/g)].map(x=>Number(x[1])),unique=[...new Set(variables)].sort((a,b)=>a-b);
+ if(body.replace(/\{\{\d+\}\}/g,'').match(/\{\{|\}\}/)||unique.length>5||unique.some((v,i)=>v!==i+1))fail('المتغيرات تبدأ {{1}} ثم {{2}} بالترتيب، حتى 5 متغيرات.');
+ const samples=unique.map((_,i)=>str(input.samples?.[i],100));if(samples.some(x=>!x||/[{}]/.test(x)))fail('أضف مثالًا حقيقيًا لكل متغير.');
+ if(/[{}]/.test(header+footer))fail('الترويسة والتذييل يدعمان نصًا ثابتًا.');
+ const buttons=(Array.isArray(input.buttons)?input.buttons:[]).map(b=>{const type=b.type,text=str(b.text,25);if(!text||!['URL','PHONE_NUMBER','QUICK_REPLY'].includes(type))fail('راجع نوع الزر ونصه.');if(type==='URL'){let url;try{url=new URL(str(b.url,2000));}catch{fail('أدخل رابط HTTPS صحيحًا.');}if(url.protocol!=='https:'||url.username||url.password||/[{}]/.test(url.href))fail('استخدم رابط HTTPS ثابتًا بدون بيانات دخول.');return {type,text,url:url.href};}if(type==='PHONE_NUMBER'){const phone_number=str(b.phone_number,20);if(!/^\+?[1-9]\d{7,14}$/.test(phone_number))fail('أدخل رقم زر الاتصال بصيغته الدولية.');return {type,text,phone_number:phone_number.startsWith('+')?phone_number:'+'+phone_number};}return {type,text};});
+ if(buttons.length>3||buttons.filter(b=>b.type==='URL').length>2||buttons.filter(b=>b.type==='PHONE_NUMBER').length>1||buttons.some(b=>b.type==='QUICK_REPLY')&&buttons.some(b=>b.type!=='QUICK_REPLY'))fail('اختر حتى 3 ردود سريعة، أو رابطين وزر اتصال واحد.');
+ if(headerType==='TEXT'&&!header)fail('أدخل نص الترويسة.');
+ let image='';if(headerType==='IMAGE'){image=String(input.image||'');if(!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(image)||image.length>1400000)fail('ارفع صورة PNG أو JPG حتى ميجابايت بعد المعالجة.');}
+ return {category,headerType,header,footer,body,samples,buttons,image};
+}
+export function templateComponents(d,handle){const components=[];if(d.headerType==='TEXT')components.push({type:'HEADER',format:'TEXT',text:d.header});if(d.headerType==='IMAGE'){if(!handle)throw Error('لم تكتمل معالجة صورة القالب.');components.push({type:'HEADER',format:'IMAGE',example:{header_handle:[handle]}});}components.push({type:'BODY',text:d.body,...(d.samples?.length?{example:{body_text:[d.samples]}}:{})});if(d.footer)components.push({type:'FOOTER',text:d.footer});if(d.buttons?.length)components.push({type:'BUTTONS',buttons:d.buttons});return components;}
+export async function normalizedTemplateImage(data,fail){const {default:sharp}=await import('sharp');try{const input=Buffer.from(data.split(',')[1]||'','base64'),pipeline=sharp(input,{limitInputPixels:16000000}),meta=await pipeline.metadata();if(!['png','jpeg'].includes(meta.format))fail('صيغة الصورة غير مدعومة.');return await pipeline.rotate().resize({width:1200,height:1200,fit:'inside',withoutEnlargement:true}).flatten({background:'#ffffff'}).jpeg({quality:85}).toBuffer();}catch{fail('تعذر قراءة الصورة. ارفع صورة PNG أو JPG سليمة.');}}
