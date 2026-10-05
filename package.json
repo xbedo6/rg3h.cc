@@ -1,1 +1,1 @@
-{"name":"rg3h-loyalty","version":"1.0.0","private":true,"dependencies":{"sharp":"0.34.5"},"scripts":{"start":"node production.mjs","check":"node --check production.mjs"}}
+{"name":"rg3h-loyalty","version":"1.0.0","private":true,"dependencies":{"exceljs":"4.4.0","sharp":"0.34.5"},"scripts":{"start":"node production.mjs","check":"node --check production.mjs"}}
