@@ -9,3 +9,5 @@
 .portrait-card:has(.wallet-native-card){aspect-ratio:345/505!important}.portrait-face>.wallet-native-card.studio-card{aspect-ratio:345/505!important}.portrait-card .wallet-native-card .studio-bottom{transform:none!important}.portrait-card .wallet-native-card .studio-code{visibility:hidden;opacity:0}.portrait-card.is-active .wallet-native-card .studio-code{visibility:visible;opacity:1}
 
 .wallet-native-card .studio-stamps>svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+.wallet-image-fill{position:absolute;left:9%;top:25.2475%;width:82.029%;height:16.8317%;pointer-events:none}.wallet-image-fill img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
