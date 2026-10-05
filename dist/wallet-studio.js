@@ -7,7 +7,8 @@
  const beforeDesign=designHTML;designHTML=function(){const box=document.createElement('div');box.innerHTML=beforeDesign().replace('شكل العنصر قبل الزيارة وبعدها، وطريقة عرض العداد.','صور العناصر قبل الزيارة وبعدها، وحجمها ومكانها.').replace('اسم المكافأة وصورتها، في مكان واحد.','اسم المكافأة وشروط استحقاقها.').replace('اسحب كل عنصر إلى أي مكان على البطاقة بالكامل، أو اختره وعدّل موقعه من هنا. تجنب تغطية الباركود حتى يبقى قابلًا للمسح.','اسحب العنصر داخل مساحة التصميم المتاحة، أو عدّل مكانه وحجمه من هنا. حدود الحركة تحمي الشعار والرصيد والباركود من التداخل.');
  const unsupported=['category','showHeadline','headline','eyebrow','showProgramLabel','hideBalance','balanceStyle','balanceX','balanceY','logoSize','logoX','logoY','headlineX','headlineY','rewardImageSize','rewardX','rewardY','effectsEnabled','stampEmphasis','elementsGlow','completedGlow','backgroundMode','hideIdentity','glassShine','pointsDisplay','stampX','stampY'];
  for(const key of unsupported)box.querySelectorAll(`[data-card="${key}"],[data-enhance="${key}"],[data-studio="${key}"]`).forEach(el=>(el.closest('label.field,label.studio-toggle,.field')||el).remove());
- box.querySelectorAll('#custom-category-field,.studio-tools,.studio-presets,.logo-edit-controls,[data-action="pattern"]').forEach(el=>{const target=el.closest('.field')||el;target.remove();});
+ box.querySelectorAll('#custom-category-field,.studio-tools,.studio-presets,[data-action="pattern"]').forEach(el=>{const target=el.closest('.field')||el;target.remove();});
+ box.querySelectorAll('.logo-edit-controls').forEach(el=>el.remove());
  box.querySelector('#reward-image-file')?.closest('.field')?.remove();
  box.querySelectorAll('.card-option-panel,.editor-advanced').forEach(el=>{if(!el.querySelector('input,select,textarea,button'))el.remove();});
  box.querySelectorAll('p.line-meta,p.sub').forEach(el=>{if(/اللمعة|٩٠٠|١٦٠٠|نستخدم علامة الهدية|عند إيقاف التمييز/.test(el.textContent))el.remove();});
