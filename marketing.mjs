@@ -1,9 +1,11 @@
+import {createCampaigns} from './marketing-campaigns.mjs';
 import {randomUUID} from 'node:crypto';
 import {templateSpec,templateComponents,normalizedTemplateImage} from './marketing-templates.mjs';
 import {createMarketingContacts} from './marketing-contacts.mjs';
 export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetch}){
  const contacts=createMarketingContacts({sql,load,fail});
  sql.exec(`CREATE TABLE IF NOT EXISTS marketing_settings(id INTEGER PRIMARY KEY CHECK(id=1),json TEXT NOT NULL); CREATE TABLE IF NOT EXISTS marketing_drafts(id TEXT PRIMARY KEY,kind TEXT NOT NULL,json TEXT NOT NULL,updated INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS marketing_tests(id TEXT PRIMARY KEY,recipient TEXT NOT NULL,template TEXT NOT NULL,status TEXT NOT NULL,message_id TEXT,created INTEGER NOT NULL);`);
+ const campaigns=createCampaigns({sql,contacts,fail});
  const text=(v,n)=>String(v||'').trim().slice(0,n);
  const config=()=>JSON.parse(sql.prepare('SELECT json FROM marketing_settings WHERE id=1').get()?.json||'{}');
  const list=kind=>sql.prepare('SELECT id,json,updated FROM marketing_drafts WHERE kind=? ORDER BY updated DESC LIMIT 100').all(kind).map(x=>({...JSON.parse(x.json),id:x.id,updated:x.updated}));
@@ -15,8 +17,9 @@ export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetc
   if(principal?.kind!=='admin')fail('قسم التسويق متاح للإدارة فقط.',403);
   rate('marketing-admin:'+principal.account,60,60000);
   if(url.pathname==='/api/marketing/contacts'||url.pathname.startsWith('/api/marketing/contact-'))return contacts.handle(req,url,principal,b);
+  if(url.pathname.startsWith('/api/marketing/campaign-'))return campaigns.handle(req,url,b);
   if(req.method==='POST'&&url.pathname==='/api/marketing/audience'){const rows=contacts.filtered(b),eligible=rows.filter(c=>!c.archived&&c.consent==='opted_in');return {total:rows.length,eligible:eligible.length,excluded:rows.length-eligible.length,sample:eligible.slice(0,10).map(c=>({id:c.id,name:c.name,phone:c.phone}))};}
-  if(req.method==='GET'&&url.pathname==='/api/marketing/state')return {catalog:contacts.catalog(),settings:config(),tokenConfigured:!!env.META_WHATSAPP_TOKEN,ready:ready(),templates:list('template'),campaigns:list('campaign'),tests:sql.prepare('SELECT * FROM marketing_tests ORDER BY created DESC LIMIT 30').all()};
+  if(req.method==='GET'&&url.pathname==='/api/marketing/state')return {catalog:contacts.catalog(),settings:config(),tokenConfigured:!!env.META_WHATSAPP_TOKEN,ready:ready(),templates:list('template'),campaigns:campaigns.list(),legacyCampaigns:list('campaign'),tests:sql.prepare('SELECT * FROM marketing_tests ORDER BY created DESC LIMIT 30').all()};
   if(req.method!=='POST')fail('المسار غير موجود.',404);
   if(url.pathname==='/api/marketing/settings'){
    const c={wabaId:text(b.wabaId,40),phoneId:text(b.phoneId,40),version:text(b.version,12),appId:text(b.appId,40)};
@@ -58,3 +61,4 @@ export function createMarketing({sql,load,fail,rate,env=process.env,fetcher=fetc
  }
  return {handle};
 }
+

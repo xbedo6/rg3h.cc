@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {createMarketing} from './marketing.mjs';
+const sql=new DatabaseSync(':memory:'),fail=(m,status=400)=>{throw Object.assign(Error(m),{status});};let requests=0;
+const app=createMarketing({sql,load:()=>({shops:[]}),fail,rate:()=>{},env:{},fetcher:async()=>{requests++;throw Error('unexpected network');}}),admin={kind:'admin',account:'qa'},call=(path,b,principal=admin)=>app.handle({method:b?'POST':'GET'},new URL('http://test/api/marketing/'+path),principal,b);
+const group=await call('contact-group-save',{business:'platform',name:'QA'});
+const g=sql.prepare('SELECT id FROM marketing_groups').get().id;
+for(const [phone,consent] of [['966500000001','opted_in'],['966500000002','opted_out'],['966500000003','unknown']])await call('contact-save',{business:'platform',name:'QA',phone,consent,consentProof:'test',groups:[g]});
+const t=await call('draft',{kind:'template',title:'QA template',name:'qa_template',body:'أهلاً {{1}}',samples:['أحمد']});
+const saved=(await call('campaign-save',{title:'QA campaign',templateId:t.id,parameters:['@name'],audience:{business:'platform',group:g}})).campaign;
+assert.equal(saved.status,'draft');assert.equal(saved.recipients.length,0);
+const d=(await call('campaign-review',{id:saved.id})).campaign;assert.equal(d.total,3);assert.equal(d.eligible,1);assert.equal(d.excluded,2);assert.equal(d.recipients[0].parameters[0],'QA');assert.equal(d.groupName,'QA');assert.ok(d.recipients.every(r=>!r.messageId));
+await assert.rejects(call('campaign-send',{id:d.id}),e=>e.status===409);await assert.rejects(call('campaign-detail?id='+d.id,undefined,{kind:'owner'}),e=>e.status===403);
+await assert.rejects(call('campaign-save',{title:'bad',templateId:t.id,parameters:[],audience:{business:'platform'}}));
+const archived=(await call('campaign-archive',{id:d.id})).campaign;assert.equal(archived.recipients.length,3);await assert.rejects(call('campaign-review',{id:d.id}));
+await call('campaign-archive',{id:d.id,archived:false});assert.equal((await call('campaign-detail?id='+d.id)).campaign.status,'reviewed');
+const edited=(await call('campaign-save',{id:d.id,title:'updated',templateId:t.id,parameters:['fixed'],audience:{business:'platform',group:g}})).campaign;assert.equal(edited.status,'draft');assert.equal(edited.recipients.length,0);assert.equal(requests,0);console.log('Campaign checks passed: linked template/group, personalized snapshot, exclusions, edit invalidation, archive history, admin isolation and zero sends.');

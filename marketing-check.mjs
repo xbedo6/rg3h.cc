@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {createMarketing} from './marketing.mjs';
+const sql=new DatabaseSync(':memory:');const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};let calls=[];
+const marketing=createMarketing({sql,fail,rate:()=>{},env:{META_WHATSAPP_TOKEN:'test-secret'},fetcher:async(url,opts)=>{calls.push({url,opts});return {ok:true,json:async()=>url.includes('message_templates')?{data:[{name:'hello',language:'ar',status:'APPROVED',components:[{type:'BODY',text:'مرحبا'}]}]}:{messages:[{id:'test-message'}]}};}});
+const admin={kind:'admin',account:'test-admin'},request=(path,data,principal=admin)=>marketing.handle({method:data?'POST':'GET'},new URL('http://test/api/marketing/'+path),principal,data);
+for(const kind of ['owner','employee','customer'])await assert.rejects(request('state',undefined,{kind}),e=>e.status===403);
+await assert.rejects(request('settings',{wabaId:'abc',phoneId:'12345',version:'v23.0'}));
+await request('settings',{wabaId:'12345',phoneId:'67890',version:'v23.0'});
+const state=await request('state');assert.equal(state.ready,true);assert.ok(!JSON.stringify(state).includes('test-secret'));
+await request('draft',{kind:'template',title:'قالب عام',name:'hello',language:'ar',body:'مرحبا',purpose:'general'});
+await request('draft',{kind:'campaign',title:'مكافأة',body:'مكافأتك جاهزة',purpose:'loyalty'});
+assert.equal((await request('state')).legacyCampaigns.length,1);assert.equal(calls.length,0);
+await assert.rejects(request('test',{recipient:'966500000000',name:'hello',language:'ar',confirm:true,consent:false}));assert.equal(calls.length,0);
+const result=await request('test',{recipient:'966500000000',name:'hello',language:'ar',confirm:true,consent:true});assert.equal(result.status,'accepted');assert.equal((await request('state')).tests[0].status,'accepted');
+assert.ok(calls.every(c=>c.url.startsWith('https://graph.facebook.com/v23.0/')));assert.equal(JSON.parse(calls.at(-1).opts.body).type,'template');
+console.log('Marketing checks passed: admin isolation, secret redaction, draft persistence, consent gate, approved test payload.');sql.close();
