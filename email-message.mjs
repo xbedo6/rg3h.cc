@@ -2,6 +2,12 @@ import {randomUUID} from 'node:crypto';
 
 const CRLF='\r\n';
 const b64=value=>Buffer.from(value).toString('base64').match(/.{1,76}/g)?.join(CRLF)||'';
+function encodedHeader(value){
+  const chunks=[];let chunk='';
+  for(const char of value){if(Buffer.byteLength(chunk+char)>42){chunks.push(chunk);chunk='';}chunk+=char;}
+  if(chunk)chunks.push(chunk);
+  return chunks.map(part=>'=?UTF-8?B?'+Buffer.from(part).toString('base64')+'?=').join(CRLF+' ');
+}
 function address(value){
   const email=String(value||'').trim();
   if(email.length>254||! /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i.test(email))throw Error('Invalid email address');
@@ -22,7 +28,7 @@ export function buildVerificationMessage({sender,to,code,purpose,logo,date=new D
   sender=address(sender);to=address(to);
   const {subject,text,html}=verificationContent(code,purpose,!!logo?.length);
   const alternative='rg3h-alt-'+randomUUID(),related='rg3h-related-'+randomUUID();
-  const headers=[`From: =?UTF-8?B?${Buffer.from('رجعة').toString('base64')}?= <${sender}>`,`To: ${to}`,`Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,`Date: ${date.toUTCString()}`,`Message-ID: <${randomUUID()}@${sender.split('@')[1]}>`,'MIME-Version: 1.0',`Content-Type: multipart/related; boundary="${related}"; type="multipart/alternative"`];
+  const headers=[`From: ${encodedHeader('رجعة')} <${sender}>`,`To: ${to}`,`Subject: ${encodedHeader(subject)}`,`Date: ${date.toUTCString()}`,`Message-ID: <${randomUUID()}@${sender.split('@')[1]}>`,'MIME-Version: 1.0',`Content-Type: multipart/related; boundary="${related}"; type="multipart/alternative"`];
   const parts=[...headers,'',`--${related}`,`Content-Type: multipart/alternative; boundary="${alternative}"`,'',`--${alternative}`,'Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',b64(text),`--${alternative}`,'Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: base64','',b64(html),`--${alternative}--`];
   if(logo?.length)parts.push(`--${related}`,'Content-Type: image/png; name="rg3h-logo.png"','Content-Transfer-Encoding: base64','Content-ID: <rg3h-logo>','Content-Disposition: inline; filename="rg3h-logo.png"','',b64(logo));
   parts.push(`--${related}--`,'');

@@ -29,6 +29,7 @@ try{
     assert.match(mime,/Content-Type: text\/plain; charset=UTF-8/);
     assert.match(mime,/Content-Type: text\/html; charset=UTF-8/);
     assert.match(mime,/Content-ID: <rg3h-logo>/);
+    for(const word of mime.match(/=\?UTF-8\?B\?.+?\?=/g)||[])assert(word.length<=75,'Encoded header words must fit RFC 2047');
     assert(Buffer.byteLength(mime)<100000,'Keep email light');
     await fs.writeFile(path.join(output,purpose+'.eml'),mime);
   }
