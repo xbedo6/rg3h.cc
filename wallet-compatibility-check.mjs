@@ -10,7 +10,7 @@ const designs=JSON.parse(fs.readFileSync('dist/showcase-designs.json'));
 for(const card of [...designs,{name:'بدون شعار',target:4,type:'visits',reward:'قهوة مجانية'}]){
  for(const language of ['ar','en'])for(const count of [0,2,4]){
   const fields=walletFields({...card,cardLanguage:language},{stamps:count,points:count*20,rewards:0});
-  assert.deepEqual(fields.primaryFields,[{label:'',value:''}]);
+  assert.deepEqual(fields.primaryFields,[]);
   assert.equal(fields.secondaryFields.length,1);
   assert.deepEqual(fields.secondaryFields,fields.footerFields);
   assert.equal(fields.headerFields.length,1);
@@ -51,6 +51,6 @@ for(const [i,url] of [[0,'serial-a'],[1,'serial-b']]){
 }
 const count=calls.length;await wallet.drain();assert.equal(calls.length,count,'completed migration must not consume repeated updates');
 const fresh={id:'RJ-NEW',stamps:0,points:0,rewards:0};await wallet.sync(shops[0],fresh);
-assert.equal(calls.at(-1).method,'POST');assert.deepEqual(calls.at(-1).body.primaryFields,[{label:'',value:''}]);assert.deepEqual(calls.at(-1).body.secondaryFields,calls.at(-1).body.footerFields,'future cards must use the same compatible layout automatically');
+assert.equal(calls.at(-1).method,'POST');assert.deepEqual(calls.at(-1).body.primaryFields,[]);assert.deepEqual(calls.at(-1).body.secondaryFields,calls.at(-1).body.footerFields,'future cards must use the same compatible layout automatically');
 sql.close();
 console.log('PASS: Arabic/English reward fields, unchanged modern artwork/logo, provider-gated one-time migration, same serials, suspended accounts excluded, future cards compatible, no repeated quota use.');
