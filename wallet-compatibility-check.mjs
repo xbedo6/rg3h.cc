@@ -7,7 +7,7 @@ import {walletFields,WALLET_LAYOUT_VERSION} from './wallet-fields.mjs';
 import {createWallet} from './wallet.mjs';
 import {walletImages} from './wallet-images.mjs';
 const designs=JSON.parse(fs.readFileSync('dist/showcase-designs.json'));
-for(const card of [...designs,{name:'���� ����',target:4,type:'visits',reward:'���� ������'}]){
+for(const card of [...designs,{name:'بدون شعار',target:4,type:'visits',reward:'قهوة مجانية'}]){
  for(const language of ['ar','en'])for(const count of [0,2,4]){
   const fields=walletFields({...card,cardLanguage:language},{stamps:count,points:count*20,rewards:0});
   assert.deepEqual(fields.primaryFields,[]);
