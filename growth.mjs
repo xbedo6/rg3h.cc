@@ -1,6 +1,7 @@
 import {randomBytes,randomUUID} from 'node:crypto';
 import {createRequire} from 'node:module';
 const Loyalty=createRequire(import.meta.url)('./dist/loyalty.js');
+const Engagement=createRequire(import.meta.url)('./dist/engagement.js');
 const DAY=86400000;
 export function growthReport(shops,{days=30,inactiveDays=30,branchId='',time=Date.now()}={}){
   const since=time-days*DAY,rows=[],branches=new Map();let visits=0,redeemed=0,recorded=0,sales=0,returning=0,available=0;
@@ -15,7 +16,7 @@ export function growthReport(shops,{days=30,inactiveDays=30,branchId='',time=Dat
       const isReturning=recent.some(l=>l!==history[0]);
       if(isReturning)returning++;
       available+=rewards;
-      rows.push({shop:sh.id,card:sh.card.title||sh.name,id:m.id,name:m.name,phone:m.phone,joined:m.joined,lastVisit:last,visits:history.length,periodVisits:recent.length,available:rewards,nearReward:rewards===0&&(Loyalty.program(sh.card).type==='points'?(m.points||0)>0&&Loyalty.program(sh.card).pointsCost-(m.points||0)<=Loyalty.program(sh.card).pointsPerVisit:(m.stamps||0)===sh.card.target-1),inactive:!!last&&time-last>=inactiveDays*DAY,neverVisited:!last&&!(m.visits>0),recordedSales:periodMoney.reduce((n,l)=>n+l.saleAmount,0),recordedVisits:periodMoney.length});
+      rows.push({shop:sh.id,card:sh.card.title||sh.name,id:m.id,name:m.name,phone:m.phone,joined:m.joined,lastVisit:last,visits:history.length,periodVisits:recent.length,available:rewards,nearReward:rewards===0&&(Loyalty.program(sh.card).type==='points'?(m.points||0)>0&&Loyalty.program(sh.card).pointsCost-(m.points||0)<=Loyalty.program(sh.card).pointsPerVisit*(Engagement.level(sh,m,time,history)?.multiplier||1):(m.stamps||0)===sh.card.target-1),inactive:!!last&&time-last>=inactiveDays*DAY,neverVisited:!last&&!(m.visits>0),recordedSales:periodMoney.reduce((n,l)=>n+l.saleAmount,0),recordedVisits:periodMoney.length});
     }
     for(const l of logs.filter(l=>l.time>=since&&(!branchId||l.branchId===branchId))){
       const key=l.branchId||'none';if(!branches.has(key))branches.set(key,{id:key,name:l.branchId?(l.branchName||'فرع غير محدد'):'بدون فرع',visits:0,redeemed:0,sales:0,recorded:0});const b=branches.get(key);
